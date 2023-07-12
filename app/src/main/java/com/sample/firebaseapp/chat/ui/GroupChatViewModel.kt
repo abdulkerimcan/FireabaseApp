@@ -1,6 +1,8 @@
 package com.sample.firebaseapp.chat.ui
 
 import android.app.Application
+import android.content.Intent
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -34,8 +36,9 @@ class GroupChatViewModel(application: Application) : AndroidViewModel(applicatio
     fun sendMessage(message: String?, requestListener: RequestListener) {
         val key = databaseReference.child("GroupChats").push().key
         val messageModel =
-            MessageModel(userModel?.name, userModel?.userId, message, getCurrentTime())
+            MessageModel(userModel?.name, userModel?.userId, message, getCurrentTime(),key)
         key?.let { chatKey ->
+
             databaseReference.child("GroupChats").child(chatKey).setValue(messageModel)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
@@ -71,6 +74,16 @@ class GroupChatViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun getMessageList(): ArrayList<MessageModel>? {
         return messageList
+    }
+
+    fun deleteMessage(id: String) {
+        val child = databaseReference.child("GroupChats").child(id)
+        var task = child.removeValue()
+
+        task.addOnSuccessListener {
+            Toast.makeText(context,"Deleted",Toast.LENGTH_LONG).show()
+
+        }
     }
 
     private fun getCurrentTime(): String? {

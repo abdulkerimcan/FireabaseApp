@@ -5,11 +5,13 @@ import android.view.View
 import android.view.View.OnLayoutChangeListener
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sample.firebaseapp.RequestListener
 import com.sample.firebaseapp.chat.adapter.MessageListAdapter
 import com.sample.firebaseapp.databinding.ActivityGroupChatBinding
+import com.sample.firebaseapp.model.MessageModel
 
 class GroupChatActivity : AppCompatActivity() {
 
@@ -37,6 +39,7 @@ class GroupChatActivity : AppCompatActivity() {
                 )
             }
         })
+
 
         binding.messageEditText.onFocusChangeListener = object : View.OnFocusChangeListener {
             override fun onFocusChange(v: View?, hasFocus: Boolean) {
@@ -72,7 +75,6 @@ class GroupChatActivity : AppCompatActivity() {
                 }
 
                 override fun onFailed(e: Exception) {
-
                 }
 
             })
@@ -96,14 +98,41 @@ class GroupChatActivity : AppCompatActivity() {
             updateAdapter()
         }
 
+
         adapter = MessageListAdapter(
             viewModel.getMessageList(),
             viewModel.getUserId()
         )
+
+        adapter?.setLongClickListener {
+                message ->
+            deleteMessage(message)
+        }
         val layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         binding.messageListRecyclerView.layoutManager = layoutManager
         binding.messageListRecyclerView.adapter = adapter
 
+    }
+
+    private fun deleteMessage(message: MessageModel) {
+        showConfirmationDialog(message)
+    }
+
+    private fun showConfirmationDialog(message: MessageModel) {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Silme Onayı")
+        builder.setMessage("Bu mesajı silmek istediğinize emin misiniz?")
+        builder.setPositiveButton("Evet") { _, _ ->
+            val messageId = message.messageId
+            messageId?.let {
+                viewModel.deleteMessage(it)
+            }
+        }
+        builder.setNegativeButton("Hayır") { _, _ ->
+            // Silme işlemi iptal edildiğinde yapılacak işlemleri burada tanımlayabilirsiniz (isteğe bağlı).
+        }
+        val dialog = builder.create()
+        dialog.show()
     }
 
 
