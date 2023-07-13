@@ -106,7 +106,7 @@ class GroupChatActivity : AppCompatActivity() {
 
         adapter?.setLongClickListener {
                 message ->
-            deleteMessage(message)
+            showConfirmationDialog(message)
         }
         val layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         binding.messageListRecyclerView.layoutManager = layoutManager
@@ -114,9 +114,6 @@ class GroupChatActivity : AppCompatActivity() {
 
     }
 
-    private fun deleteMessage(message: MessageModel) {
-        showConfirmationDialog(message)
-    }
 
     private fun showConfirmationDialog(message: MessageModel) {
         val builder = AlertDialog.Builder(this)
@@ -126,10 +123,11 @@ class GroupChatActivity : AppCompatActivity() {
             val messageId = message.messageId
             messageId?.let {
                 viewModel.deleteMessage(it)
+                adapter?.delete(message)
             }
         }
         builder.setNegativeButton("Hayır") { _, _ ->
-            // Silme işlemi iptal edildiğinde yapılacak işlemleri burada tanımlayabilirsiniz (isteğe bağlı).
+
         }
         val dialog = builder.create()
         dialog.show()

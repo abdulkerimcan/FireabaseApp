@@ -17,7 +17,7 @@ class MessageListAdapter(
 ) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private var messageViewType: MessageDetailEnum = MessageDetailEnum.SENDER
-
+    public var isDeleted = false
     private var longClickListener: ((MessageModel) -> Unit)? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -68,14 +68,16 @@ class MessageListAdapter(
                 val message = items?.get(position)
                 message?.let {
                     longClickListener?.invoke(it)
-                    items?.removeAt(position)
                 }
-
-                notifyItemRemoved(position)
             }
         }
+    }
 
-
+    fun delete(message: MessageModel) {
+        message?.let {
+            items?.remove(it)
+        }
+        notifyDataSetChanged()
     }
 
     override fun getItemCount(): Int {
