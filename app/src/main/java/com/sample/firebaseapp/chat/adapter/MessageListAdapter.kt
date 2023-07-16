@@ -2,13 +2,16 @@ package com.sample.firebaseapp.chat.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.crashlytics.internal.model.CrashlyticsReport.Session.User
 import com.sample.firebaseapp.RequestListener
 import com.sample.firebaseapp.chat.viewholder.MessageListReceiverViewHolder
 import com.sample.firebaseapp.chat.viewholder.MessageListSenderViewHolder
 import com.sample.firebaseapp.databinding.LayoutMessageReceiverBinding
 import com.sample.firebaseapp.databinding.LayoutMessageSenderBinding
 import com.sample.firebaseapp.model.MessageModel
+import com.sample.firebaseapp.model.UserModel
 import kotlinx.coroutines.selects.select
 
 class MessageListAdapter(
@@ -17,9 +20,8 @@ class MessageListAdapter(
 ) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private var messageViewType: MessageDetailEnum = MessageDetailEnum.SENDER
-    public var isDeleted = false
     private var longClickListener: ((MessageModel) -> Unit)? = null
-
+    private var clickListener: ((MessageModel) -> Unit)? = null
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
 
         return when (viewType) {
@@ -48,6 +50,9 @@ class MessageListAdapter(
     fun setLongClickListener(listener: (MessageModel) -> Unit) {
         longClickListener = listener
     }
+    fun setClickListener(listener: (MessageModel) -> Unit) {
+        clickListener = listener
+    }
 
     fun updateData(list: ArrayList<MessageModel>?) {
         items = list
@@ -58,17 +63,28 @@ class MessageListAdapter(
 
         if (holder is MessageListReceiverViewHolder) {
             holder.bind(items?.get(position))
+
+
         }
 
         if (holder is MessageListSenderViewHolder) {
             holder.bind(items?.get(position))
 
             // sadece gönderdiğimiz mesajları silmek burada silme işlemi yapılıyor.
-            holder.itemView.setOnClickListener {
+            holder.itemView.setOnLongClickListener {
                 val message = items?.get(position)
                 message?.let {
                     longClickListener?.invoke(it)
                 }
+                true
+            }
+        }
+
+        holder.itemView.setOnClickListener {
+
+            val message = items?.get(position)
+            message?.let {
+                clickListener?.invoke(it)
             }
         }
     }

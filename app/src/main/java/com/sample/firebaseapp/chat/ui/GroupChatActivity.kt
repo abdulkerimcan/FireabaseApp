@@ -1,5 +1,6 @@
 package com.sample.firebaseapp.chat.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.View.OnLayoutChangeListener
@@ -8,10 +9,17 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import com.sample.firebaseapp.RequestListener
+import com.sample.firebaseapp.chat.adapter.MessageDetailEnum
 import com.sample.firebaseapp.chat.adapter.MessageListAdapter
+import com.sample.firebaseapp.dashboard.DashBoardActivity
 import com.sample.firebaseapp.databinding.ActivityGroupChatBinding
 import com.sample.firebaseapp.model.MessageModel
+import com.sample.firebaseapp.profile.ProfileActivity
+import com.sample.firebaseapp.ui.register.RegisterActivity
 
 class GroupChatActivity : AppCompatActivity() {
 
@@ -22,6 +30,7 @@ class GroupChatActivity : AppCompatActivity() {
     private var adapter: MessageListAdapter? = null
 
     private var isFirstOpen: Boolean? = true
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,6 +48,7 @@ class GroupChatActivity : AppCompatActivity() {
                 )
             }
         })
+
 
 
         binding.messageEditText.onFocusChangeListener = object : View.OnFocusChangeListener {
@@ -101,13 +111,31 @@ class GroupChatActivity : AppCompatActivity() {
 
         adapter = MessageListAdapter(
             viewModel.getMessageList(),
-            viewModel.getUserId()
+            viewModel.getUserId(),
         )
-
+        // User kendi mesajına tıkladığında dialog açılmasını sağlayan kod
         adapter?.setLongClickListener {
                 message ->
-            showConfirmationDialog(message)
+                showConfirmationDialog(message)
+
         }
+        // Tek tıklanıldığında profil sayfasına gitmeyi sağlayan kod
+        adapter?.setClickListener {
+                messageModel ->
+            val selectedUserId = messageModel.userId
+            selectedUserId?.let {
+                viewModel.getUser(selectedUserId) {
+                    if (it != null) {
+                        val intent = Intent(this@GroupChatActivity, ProfileActivity::class.java)
+                        intent.putExtra("user",it)
+                        startActivity(intent)
+                    }else {
+                        Toast.makeText(this,"An error occurs",Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+
         val layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
         binding.messageListRecyclerView.layoutManager = layoutManager
         binding.messageListRecyclerView.adapter = adapter

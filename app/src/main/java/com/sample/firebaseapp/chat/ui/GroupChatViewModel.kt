@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Intent
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
+import com.google.firebase.crashlytics.internal.model.CrashlyticsReport.Session.User
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -93,5 +94,15 @@ class GroupChatViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun getUserId(): String? {
         return userModel?.userId
+    }
+
+    fun getUser(userId: String, callback: (UserModel?) -> Unit) {
+        databaseReference.child("Users").child(userId).get().addOnSuccessListener { snapshot ->
+            val userModel = snapshot.getValue(UserModel::class.java)
+            callback(userModel)
+        }.addOnFailureListener {
+            // Hata durumunda null veya hata mesajı döndürebilirsiniz.
+            callback(null)
+        }
     }
 }
